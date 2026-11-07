@@ -1,14 +1,51 @@
-{% extends 'tasks/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}{{ task.title }}{% endblock %}
 
 {% block content %}
-    <h1>{{ task.title }}</h1>
-    <p>{{ task.description|default:"No description." }}</p>
-    <p>Status: {% if task.completed %}Done ✅{% else %}Not done{% endif %}</p>
-    <p>Created: {{ task.created_at|date:"d M Y, H:i" }}</p>
-    <p>
-        <a href="{% url 'task_update' task.pk %}">Edit</a> |
-        <a href="{% url 'task_delete' task.pk %}">Delete</a>
-    </p>
+<a href="{% url 'task_list' %}" class="back">← All tasks</a>
+
+<div class="card">
+    <div class="detail-head">
+        <h1 class="{% if task.completed %}strike{% endif %}">{{ task.title }}</h1>
+        <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+    </div>
+
+    <div class="description">
+        {% if task.description %}
+            {{ task.description|linebreaks }}
+        {% else %}
+            <p class="muted">No description.</p>
+        {% endif %}
+    </div>
+
+    <dl class="facts">
+        <div>
+            <dt>Status</dt>
+            <dd>{% if task.completed %}Done ✓{% else %}Not done{% endif %}</dd>
+        </div>
+        <div>
+            <dt>Due</dt>
+            <dd class="{% if task.is_overdue %}overdue{% endif %}">
+                {% if task.due_date %}{{ task.due_date|date:"d M Y" }}{% if task.is_overdue %} (overdue){% endif %}{% else %}—{% endif %}
+            </dd>
+        </div>
+        <div>
+            <dt>Created</dt>
+            <dd>{{ task.created_at|date:"d M Y, H:i" }}</dd>
+        </div>
+    </dl>
+
+    <div class="actions">
+        <form method="post" action="{% url 'task_toggle' task.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-primary">
+                {% if task.completed %}Mark as not done{% else %}Mark as done{% endif %}
+            </button>
+        </form>
+        <a href="{% url 'task_update' task.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger">Delete</a>
+    </div>
+</div>
 {% endblock %}

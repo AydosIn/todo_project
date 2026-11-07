@@ -1,13 +1,24 @@
-{% extends 'tasks/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}New Task{% endblock %}
+{% block title %}{% if task %}Edit task{% else %}New task{% endif %}{% endblock %}
 
 {% block content %}
-    <h1>New Task</h1>
+<a href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'task_list' %}{% endif %}" class="back">← Back</a>
 
-    <form method="post">
+<div class="card form-card">
+    <h1>{% if task %}Edit task{% else %}New task{% endif %}</h1>
+
+    <form method="post" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Save</button>
+
+        {% for field in form %}
+            {% include 'includes/field.html' %}
+        {% endfor %}
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">{% if task %}Save changes{% else %}Create task{% endif %}</button>
+            <a href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'task_list' %}{% endif %}" class="btn btn-ghost">Cancel</a>
+        </div>
     </form>
+</div>
 {% endblock %}

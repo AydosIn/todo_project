@@ -1,0 +1,18 @@
+{# Renders one form field with its label, help text and errors. Use: {% include 'includes/field.html' %} inside {% for field in form %} #}
+{% with input_type=field.field.widget.input_type %}
+<div class="field{% if input_type == 'checkbox' %} field-check{% endif %}{% if field.errors %} has-error{% endif %}">
+    {% if input_type == 'checkbox' %}
+        <label>{{ field }} {{ field.label }}</label>
+    {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+    {% endif %}
+
+    {% if field.help_text %}
+        <div class="help">{{ field.help_text|safe }}</div>
+    {% endif %}
+    {% for error in field.errors %}
+        <div class="error">{{ error }}</div>
+    {% endfor %}
+</div>
+{% endwith %}

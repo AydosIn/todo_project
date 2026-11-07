@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Todo{% endblock %} · Todo</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="{% url 'task_list' %}">
+                <span class="brand-mark">✓</span> Todo
+            </a>
+
+            {% if user.is_authenticated %}
+                <nav class="nav">
+                    <span class="nav-user">{{ user.username }}</span>
+                    <a class="btn btn-primary btn-sm" href="{% url 'task_create' %}">+ New task</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+                    </form>
+                </nav>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
