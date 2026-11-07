@@ -1,17 +1,74 @@
-{% extends 'tasks/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}My Tasks{% endblock %}
+{% block title %}My tasks{% endblock %}
 
 {% block content %}
-    <h1>My Tasks</h1>
-    <ul>
-        {% for task in tasks %}
-            <li>
-                <a href="{% url 'task_detail' task.pk %}">{{ task.title }}</a>
-                {% if task.completed %}✅{% endif %}
-            </li>
-        {% empty %}
-            <li>No tasks yet.</li>
-        {% endfor %}
-    </ul>
+<div class="page-head">
+    <div>
+        <h1>My tasks</h1>
+        <p class="muted">{{ counts.active }} to do · {{ counts.completed }} done</p>
+    </div>
+</div>
+
+<div class="toolbar">
+    <nav class="tabs">
+        <a href="?status=all{% if q %}&q={{ q|urlencode }}{% endif %}" class="tab{% if status == 'all' %} active{% endif %}">
+            All <span class="count">{{ counts.all }}</span>
+        </a>
+        <a href="?status=active{% if q %}&q={{ q|urlencode }}{% endif %}" class="tab{% if status == 'active' %} active{% endif %}">
+            Active <span class="count">{{ counts.active }}</span>
+        </a>
+        <a href="?status=completed{% if q %}&q={{ q|urlencode }}{% endif %}" class="tab{% if status == 'completed' %} active{% endif %}">
+            Done <span class="count">{{ counts.completed }}</span>
+        </a>
+    </nav>
+
+    <form method="get" class="search">
+        <input type="hidden" name="status" value="{{ status }}">
+        <input type="search" name="q" value="{{ q }}" placeholder="Search tasks…">
+    </form>
+</div>
+
+<ul class="task-list">
+    {% for task in tasks %}
+        <li class="task{% if task.completed %} is-done{% endif %}">
+            <form method="post" action="{% url 'task_toggle' task.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="check" title="{% if task.completed %}Mark as not done{% else %}Mark as done{% endif %}">
+                    {% if task.completed %}✓{% endif %}
+                </button>
+            </form>
+
+            <div class="task-body">
+                <a class="task-title" href="{% url 'task_detail' task.pk %}">{{ task.title }}</a>
+                <div class="task-meta">
+                    <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                    {% if task.due_date %}
+                        <span class="due{% if task.is_overdue %} overdue{% endif %}">
+                            {% if task.is_overdue %}Overdue · {% else %}Due {% endif %}{{ task.due_date|date:"d M Y" }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="task-actions">
+                <a href="{% url 'task_update' task.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                <a href="{% url 'task_delete' task.pk %}" class="btn btn-ghost btn-sm btn-danger-text">Delete</a>
+            </div>
+        </li>
+    {% empty %}
+        <li class="empty">
+            {% if q %}
+                No tasks match "{{ q }}".
+            {% elif status == 'completed' %}
+                Nothing finished yet.
+            {% elif status == 'active' %}
+                All done. Nice work!
+            {% else %}
+                No tasks yet. <a href="{% url 'task_create' %}">Create your first one</a>.
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
 {% endblock %}
